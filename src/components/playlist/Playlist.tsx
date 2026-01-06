@@ -37,21 +37,22 @@ export function Playlist() {
     }
   }, [queueIndex, queue.length, currentPage]);
 
-  // Auto-set current track
+  // Sync current track with queue index - single source of truth
   useEffect(() => {
-    if (queue.length > 0 && !currentTrack) {
-      setCurrentTrack(queue[0]);
+    const track = queue[queueIndex];
+    if (track && track.id !== currentTrack?.id) {
+      setCurrentTrack(track);
     }
-    setCurrentPage(0);
-  }, [queue, currentTrack, setCurrentTrack]);
+  }, [queueIndex, queue, currentTrack?.id, setCurrentTrack]);
 
+  // Reset page when queue changes completely
   useEffect(() => {
-    if (queue[queueIndex]) setCurrentTrack(queue[queueIndex]);
-  }, [queueIndex, queue, setCurrentTrack]);
+    setCurrentPage(0);
+  }, [activePlaylist?.id]);
 
   const handlePlayTrack = (index: number) => {
+    // Only set queue index - the effect will handle setting current track
     setQueueIndex(index);
-    setCurrentTrack(queue[index]);
   };
 
   return (

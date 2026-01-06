@@ -1,20 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
-import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
+import YouTube, { YouTubeEvent } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
+import { playerManager } from '@/lib/playerManager';
 
 export function Player() {
   const {
     currentTrack,
-    isPlaying,
     volume,
     isMuted,
     isLoading,
-    setPlayerRef,
     setIsPlaying,
     setDuration,
     setProgress,
@@ -22,21 +21,16 @@ export function Player() {
     repeatMode,
   } = usePlayerStore();
 
-  const { nextTrack, queueIndex, queue } = usePlaylistStore();
-
+  const { nextTrack } = usePlaylistStore();
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
-  const playerRef = useRef<YouTubePlayer | null>(null);
+  const currentVideoId = useRef<string | null>(null);
 
   const startProgressTracking = useCallback(() => {
-    if (progressInterval.current) {
-      clearInterval(progressInterval.current);
-    }
+    if (progressInterval.current) clearInterval(progressInterval.current);
     progressInterval.current = setInterval(() => {
-      if (playerRef.current) {
-        const currentTime = playerRef.current.getCurrentTime();
-        setProgress(currentTime);
-      }
-    }, 250);
+      const t = playerManager.getCurrentTime();
+      if (!isNaN(t)) setProgress(t);
+    }, 500);
   }, [setProgress]);
 
   const stopProgressTracking = useCallback(() => {
@@ -47,17 +41,15 @@ export function Player() {
   }, []);
 
   const onReady = useCallback((event: YouTubeEvent) => {
-    playerRef.current = event.target;
-    setPlayerRef(event.target);
+    // Stop any previous player before setting new one
+    playerManager.setPlayer(event.target);
     event.target.setVolume(volume);
-    if (isMuted) {
-      event.target.mute();
-    }
-  }, [setPlayerRef, volume, isMuted]);
+    if (isMuted) event.target.mute();
+    currentVideoId.current = currentTrack?.youtubeId || null;
+  }, [volume, isMuted, currentTrack?.youtubeId]);
 
   const onStateChange = useCallback((event: YouTubeEvent) => {
     const state = event.data;
-
     switch (state) {
       case PLAYER_STATES.PLAYING:
         setIsPlaying(true);
@@ -71,6 +63,7 @@ export function Player() {
         break;
       case PLAYER_STATES.ENDED:
         stopProgressTracking();
+        setIsPlaying(false);
         if (repeatMode === 'one') {
           event.target.seekTo(0);
           event.target.playVideo();
@@ -87,27 +80,28 @@ export function Player() {
     }
   }, [setIsPlaying, setIsLoading, setDuration, startProgressTracking, stopProgressTracking, repeatMode, nextTrack]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopProgressTracking();
+      playerManager.destroy();
+    };
+  }, [stopProgressTracking]);
+
+  // Stop previous track when changing tracks
+  useEffect(() => {
+    if (currentTrack?.youtubeId && currentVideoId.current && currentTrack.youtubeId !== currentVideoId.current) {
+      playerManager.stop();
+    }
+  }, [currentTrack?.youtubeId]);
+
   const onError = useCallback(() => {
     setIsLoading(false);
     setIsPlaying(false);
-    // Auto-skip to next track on error
     setTimeout(() => {
       nextTrack();
     }, 1000);
   }, [setIsLoading, setIsPlaying, nextTrack]);
-
-  useEffect(() => {
-    return () => {
-      stopProgressTracking();
-    };
-  }, [stopProgressTracking]);
-
-  // Auto-play when current track changes
-  useEffect(() => {
-    if (currentTrack && playerRef.current) {
-      setIsLoading(true);
-    }
-  }, [currentTrack, setIsLoading]);
 
   return (
     <TerminalWindow 
@@ -119,6 +113,7 @@ export function Player() {
           <>
             <div>
               <YouTube
+                key={currentTrack.youtubeId}
                 videoId={currentTrack.youtubeId}
                 opts={YOUTUBE_PLAYER_OPTIONS}
                 onReady={onReady}

@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 import { Track, Playlist, Genre, SortOption, TimeFilter } from '@/types';
 import { fetchPlaylistFromSubreddit } from '@/lib/reddit';
 import { generateId, shuffleArray } from '@/lib/utils';
+import { playerManager } from '@/lib/playerManager';
 
 interface PlaylistState {
   // Playlists
@@ -95,6 +96,13 @@ export const usePlaylistStore = create<PlaylistState>()(
             queueIndex: 0,
             isLoading: false,
           }));
+
+          // Stop any existing playback immediately to avoid overlapping audio
+          try {
+            playerManager.stop();
+          } catch (e) {
+            /* ignore */
+          }
         } catch (error) {
           set({
             isLoading: false,
@@ -197,14 +205,21 @@ export const usePlaylistStore = create<PlaylistState>()(
           }
         }),
 
-      loadPlaylistToQueue: (playlist) =>
+      loadPlaylistToQueue: (playlist) => {
+        // Stop any existing playback immediately when loading new playlist
+        try {
+          playerManager.stop();
+        } catch (e) {
+          /* ignore */
+        }
         set({
           activePlaylist: playlist,
           queue: playlist.tracks,
           originalQueue: playlist.tracks,
           queueIndex: 0,
           isShuffled: false,
-        }),
+        });
+      },
 
       deletePlaylist: (playlistId) =>
         set((state) => ({

@@ -3,9 +3,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Track } from '@/types';
+import { playerManager } from '@/lib/playerManager';
 
 interface PlayerState {
-  // Current state
   currentTrack: Track | null;
   isPlaying: boolean;
   volume: number;
@@ -15,10 +15,6 @@ interface PlayerState {
   isMuted: boolean;
   repeatMode: 'off' | 'one' | 'all';
   
-  // YouTube player reference
-  playerRef: YT.Player | null;
-  
-  // Actions
   setCurrentTrack: (track: Track | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setVolume: (volume: number) => void;
@@ -27,9 +23,7 @@ interface PlayerState {
   setIsLoading: (loading: boolean) => void;
   setIsMuted: (muted: boolean) => void;
   setRepeatMode: (mode: 'off' | 'one' | 'all') => void;
-  setPlayerRef: (player: YT.Player | null) => void;
   
-  // Player controls
   play: () => void;
   pause: () => void;
   togglePlay: () => void;
@@ -49,56 +43,39 @@ export const usePlayerStore = create<PlayerState>()(
       isLoading: false,
       isMuted: false,
       repeatMode: 'off',
-      playerRef: null,
 
       setCurrentTrack: (track) => set({ currentTrack: track, progress: 0, isLoading: true }),
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       setVolume: (volume) => {
         set({ volume });
-        const player = get().playerRef;
-        if (player) {
-          player.setVolume(volume);
-        }
+        playerManager.setVolume(volume);
       },
       setProgress: (progress) => set({ progress }),
       setDuration: (duration) => set({ duration }),
       setIsLoading: (loading) => set({ isLoading: loading }),
       setIsMuted: (muted) => {
         set({ isMuted: muted });
-        const player = get().playerRef;
-        if (player) {
-          if (muted) {
-            player.mute();
-          } else {
-            player.unMute();
-          }
-        }
+        if (muted) playerManager.mute();
+        else playerManager.unMute();
       },
       setRepeatMode: (mode) => set({ repeatMode: mode }),
-      setPlayerRef: (player) => set({ playerRef: player }),
 
       play: () => {
-        const player = get().playerRef;
-        if (player) {
-          player.playVideo();
-          set({ isPlaying: true });
-        }
+        playerManager.play();
+        set({ isPlaying: true });
       },
 
       pause: () => {
-        const player = get().playerRef;
-        if (player) {
-          player.pauseVideo();
-          set({ isPlaying: false });
-        }
+        playerManager.pause();
+        set({ isPlaying: false });
       },
 
       togglePlay: () => {
-        const { isPlaying, play, pause } = get();
+        const { isPlaying } = get();
         if (isPlaying) {
-          pause();
+          get().pause();
         } else {
-          play();
+          get().play();
         }
       },
 
@@ -115,11 +92,8 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       seekTo: (seconds) => {
-        const player = get().playerRef;
-        if (player) {
-          player.seekTo(seconds, true);
-          set({ progress: seconds });
-        }
+        playerManager.seekTo(seconds);
+        set({ progress: seconds });
       },
     }),
     {
