@@ -140,4 +140,18 @@ MIT License
 
 ---
 
+## Progressive Web App (PWA)
+
+- This project includes basic PWA support: `manifest.json`, icons, an offline fallback page, and a simple `service-worker.js` which is registered in production.
+- To test the PWA locally:
+  1. Build: `npm run build`
+  2. Start: `npm start` (or deploy to a secure host)
+  3. Open DevTools → Application to inspect the manifest and Service Worker.
+- Notes:
+  - Service workers require HTTPS in production (or `localhost` for testing).
+  - The provided service worker performs simple cache-first behavior for cached assets and falls back to `/offline.html` when the network is unavailable.
+  - If you want richer caching strategies, consider integrating `next-pwa` or `Workbox` during build.
+
+---
+
 **Note**: This application uses Reddit's public API to fetch posts containing YouTube links.
