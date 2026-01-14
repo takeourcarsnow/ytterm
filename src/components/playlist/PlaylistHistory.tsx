@@ -17,24 +17,18 @@ export function PlaylistHistory() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [listHeight, setListHeight] = useState(200);
 
-  if (entries.length === 0) return null;
-
   useEffect(() => {
     const ro = new ResizeObserver(() => {
-      const newHeight = containerRef.current?.clientHeight || 200;
-      setListHeight((prev) => {
-        // avoid tiny fluctuations causing infinite resize loops
-        if (Math.abs((prev || 0) - newHeight) > 2) {
-          return Math.max(newHeight - 16, 100); // subtract padding (p-2 = 8px top + 8px bottom)
-        }
-        return prev as number;
-      });
+      if (containerRef.current) {
+        const newHeight = containerRef.current.clientHeight - 16; // subtract padding
+        setListHeight(Math.max(newHeight, 100));
+      }
     });
     if (containerRef.current) ro.observe(containerRef.current);
-    const initial = containerRef.current?.clientHeight || 200;
-    setListHeight((prev) => (Math.abs((prev || 0) - initial) > 2 ? Math.max(initial - 16, 100) : (prev as number)));
     return () => ro.disconnect();
   }, []);
+
+  if (entries.length === 0) return null;
 
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const entry = entries[index];
@@ -84,7 +78,7 @@ export function PlaylistHistory() {
         </div>
       )
     }>
-      <div ref={containerRef} className="p-2 space-y-1 overflow-y-auto">
+      <div ref={containerRef} className="p-2 space-y-1">
         <VirtualList
           height={listHeight}
           itemCount={entries.length}
