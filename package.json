@@ -17,7 +17,9 @@
     "react-dom": "19.2.3",
     "react-youtube": "^10.1.0",
     "react-window": "^1.8.8",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "bottleneck": "^2.19.5",
+    "lru-cache": "^9.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

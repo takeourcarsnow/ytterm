@@ -22,16 +22,19 @@ export async function fetchSubredditPosts(
   if (after) params.set('after', after);
   if (sort === 'top') params.set('t', timeFilter);
   
-  const url = `${REDDIT_BASE_URL}/r/${subreddit}/${sort}.json?${params}`;
-  
-  const response = await fetch(url);
-  
+  const apiUrl = `/api/reddit/${subreddit}?sort=${encodeURIComponent(sort)}&limit=${encodeURIComponent(
+    String(limit)
+  )}&t=${encodeURIComponent(timeFilter)}${after ? `&after=${encodeURIComponent(after)}` : ''}`;
+
+  const response = await fetch(apiUrl);
+
   if (!response.ok) {
-    throw new Error(`Failed to fetch from r/${subreddit}: ${response.status}`);
+    const body = await response.text().catch(() => '');
+    throw new Error(`Failed to fetch from r/${subreddit}: ${response.status} ${body}`);
   }
-  
+
   const data = await response.json();
-  
+
   return {
     posts: data.data.children.map((child: { data: RedditPost }) => child.data),
     after: data.data.after,
@@ -113,23 +116,22 @@ export async function fetchPlaylistFromSubreddit(
 export async function fetchComments(permalink: string): Promise<RedditComment[]> {
   // Extract subreddit and post ID from permalink
   // permalink format: /r/subreddit/comments/post_id/title/
+  // Convert permalink like: /r/subreddit/comments/post_id/title/ into route params
   const match = permalink.match(/\/r\/([^\/]+)\/comments\/([^\/]+)\//);
-  if (!match) {
-    throw new Error('Invalid permalink format');
-  }
-  
+  if (!match) throw new Error('Invalid permalink format');
   const [, subreddit, postId] = match;
-  const url = `${REDDIT_BASE_URL}/r/${subreddit}/comments/${postId}.json`;
-  
-  const response = await fetch(url);
+
+  const apiUrl = `/api/reddit/${subreddit}/comments/${postId}`;
+  const response = await fetch(apiUrl);
   if (!response.ok) {
-    throw new Error(`Failed to fetch comments: ${response.status}`);
+    const body = await response.text().catch(() => '');
+    throw new Error(`Failed to fetch comments: ${response.status} ${body}`);
   }
-  
+
   const data = await response.json();
   // Reddit API returns [post_data, comments_data]
   const commentsData = data[1]?.data?.children || [];
-  
+
   return commentsData
     .filter((child: any) => child.kind === 't1') // Only comments, not more objects
     .filter((child: any) => !BOT_USERNAMES.has(child.data.author)) // Filter out bot comments
