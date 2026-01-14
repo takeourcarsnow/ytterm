@@ -2,11 +2,20 @@
 
 import { GenreSelector, Playlist, PlaylistHistory, Favorites } from '@/components/playlist';
 import { TerminalHeader } from '@/components/terminal';
-import { HelpModal, useHelpModal } from '@/components/ui';
+import { useHelpModal } from '@/components/ui';
+import dynamic from 'next/dynamic';
 import { KeyboardShortcutsProvider } from '@/hooks';
 import { useState, useEffect } from 'react';
 import { List, Star, History, Music } from 'lucide-react';
-import { Player } from '@/components/player';
+import { Loading } from '@/components/ui';
+
+const Player = dynamic(() => import('@/components/player').then((m) => m.Player), {
+  ssr: false,
+  loading: () => <div className="p-4"><Loading text="Loading player" /></div>,
+});
+
+const HelpModal = dynamic(() => import('@/components/ui').then((m) => m.HelpModal), { ssr: false });
+
 
 type MobileTab = 'genres' | 'queue' | 'history' | 'favorites';
 

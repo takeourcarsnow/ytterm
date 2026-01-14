@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Track } from '@/types';
 import { usePlayerStore } from '@/stores';
 import { truncateText } from '@/lib/utils';
 import { Play, Pause, X, ExternalLink, MessageCircle, Star } from 'lucide-react';
-import { CommentsModal } from '@/components/ui';
+const CommentsModal = dynamic(() => import('@/components/ui').then((m) => m.CommentsModal), { ssr: false });
 import { useFavoritesStore } from '@/stores';
+
+
 
 interface PlaylistItemProps {
   track: Track;
@@ -16,7 +19,7 @@ interface PlaylistItemProps {
   onRemove: () => void;
 }
 
-export function PlaylistItem({
+function PlaylistItemComponent({
   track,
   index,
   isActive,
@@ -25,15 +28,15 @@ export function PlaylistItem({
 }: PlaylistItemProps) {
   const [showComments, setShowComments] = useState(false);
 
-  const handleRedditClick = () => {
+  const handleRedditClick = useCallback(() => {
     if (track.redditUrl) {
       window.open(track.redditUrl, '_blank');
     }
-  };
+  }, [track.redditUrl]);
 
-  const handleCommentsClick = () => {
+  const handleCommentsClick = useCallback(() => {
     setShowComments(true);
-  };
+  }, []);
 
   function FavoriteButton({ track }: { track: Track }) {
     const addFavorite = useFavoritesStore((s) => s.addFavorite);
@@ -137,3 +140,8 @@ export function PlaylistItem({
     </div>
   );
 }
+
+export const PlaylistItem = React.memo(PlaylistItemComponent, (prev, next) => {
+  // Only rerender when identity or active state changes; ignore handler identity
+  return prev.track.id === next.track.id && prev.isActive === next.isActive && prev.index === next.index;
+});

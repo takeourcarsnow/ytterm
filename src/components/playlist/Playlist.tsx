@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePlaylistStore, usePlayerStore } from '@/stores';
 import { TerminalWindow } from '@/components/terminal';
 import { PlaylistItem } from './PlaylistItem';
 import { Button, Loading } from '@/components/ui';
 import { ListMusic, Trash2, RefreshCw } from 'lucide-react';
+import { FixedSizeList as VirtualList } from 'react-window';
+
+
 
 export function Playlist() {
   const {
@@ -90,25 +93,69 @@ export function Playlist() {
           </div>
         ) : (
           <div>
-            {visibleTracks.map((track, index) => {
-              const globalIndex = index;
-              return (
-                <div key={track.id} ref={globalIndex === queueIndex ? activeItemRef : undefined}>
-                  <PlaylistItem
-                    track={track}
-                    index={globalIndex}
-                    isActive={globalIndex === queueIndex}
-                    onPlay={() => handlePlayTrack(globalIndex)}
-                    onRemove={() => removeTrackFromQueue(track.id)}
-                  />
-                </div>
-              );
-            })}
+            {/* Virtualized list for performance */}
+            <div ref={containerRef} className="w-full">
+              <VirtualizedPlaylist />
+            </div>
           </div>
         )}
+
       </div>
 
 
     </TerminalWindow>
   );
+
+  function VirtualizedPlaylist() {
+    const [listHeight, setListHeight] = useState(400);
+    const listRef = useRef<any>(null);
+
+    useEffect(() => {
+      // Measure available height using ResizeObserver
+      const ro = new ResizeObserver(() => {
+        setListHeight(containerRef.current?.clientHeight || 400);
+      });
+      if (containerRef.current) ro.observe(containerRef.current);
+      // Initial measurement
+      setListHeight(containerRef.current?.clientHeight || 400);
+      return () => ro.disconnect();
+    }, []);
+
+    useEffect(() => {
+      if (typeof queueIndex === 'number' && listRef.current) {
+        try {
+          listRef.current.scrollToItem(queueIndex, 'center');
+        } catch (e) {}
+      }
+    }, [queueIndex]);
+
+    const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+      const track = visibleTracks[index];
+      const isActiveRow = index === queueIndex;
+      return (
+        <div style={style} key={track.id} ref={isActiveRow ? activeItemRef : undefined}>
+          <PlaylistItem
+            track={track}
+            index={index}
+            isActive={isActiveRow}
+            onPlay={() => handlePlayTrack(index)}
+            onRemove={() => removeTrackFromQueue(track.id)}
+          />
+        </div>
+      );
+    };
+
+    return (
+      <VirtualList
+        height={listHeight}
+        itemCount={visibleTracks.length}
+        itemSize={44}
+        width="100%"
+        ref={listRef}
+      >
+        {Row}
+      </VirtualList>
+    );
+  }
 }
+

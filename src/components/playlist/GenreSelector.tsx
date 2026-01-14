@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GENRES, SORT_OPTIONS, TIME_FILTERS } from '@/constants/genres';
 import { usePlaylistStore } from '@/stores';
 import { Genre, SortOption, TimeFilter } from '@/types';
 import { TerminalWindow } from '@/components/terminal';
 import { Button, Loading } from '@/components/ui';
 import { usePlayerStore } from '@/stores';
-import { ChevronDown, Radio } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 export function GenreSelector() {
   const {
@@ -18,15 +18,28 @@ export function GenreSelector() {
     timeFilter,
     setSortOption,
     setTimeFilter,
+    activePlaylist,
   } = usePlaylistStore();
 
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [showOptions, setShowOptions] = useState(false);
 
+  const { setIsPlaying } = usePlayerStore();
+
+  // Prefetch the first genre once on mount for faster perceived load
+  useEffect(() => {
+    if (!activePlaylist && !isLoading) {
+      const defaultGenre = GENRES[0];
+      if (defaultGenre) {
+        setSelectedGenre(defaultGenre);
+        generatePlaylist(defaultGenre);
+        setIsPlaying(true);
+      }
+    }
+  }, [activePlaylist, isLoading, generatePlaylist, setIsPlaying]);
+
   // Always show all genres instantly
   const visibleGenres = GENRES;
-
-  const { setIsPlaying } = usePlayerStore();
 
   const handleGenreSelect = (genre: Genre) => {
     setSelectedGenre(genre);
@@ -40,8 +53,7 @@ export function GenreSelector() {
       <div className="p-2 space-y-2 h-full overflow-y-auto">
         {/* Header */}
         <div className="flex items-center gap-2 text-terminal-accent">
-          <Radio className="w-3 h-3" />
-          <span className="font-mono text-xs">Select subreddit</span>
+          <span className="sr-only">Select subreddit</span>
         </div>
 
         {/* Sort options toggle */}

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useCallback, useRef, useEffect } from 'react';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
@@ -7,7 +8,7 @@ import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/li
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
 
-export function Player({ compact = false }: { compact?: boolean }) {
+function PlayerComponent({ compact = false }: { compact?: boolean }) {
   const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying } = usePlayerStore();
   const { nextTrack } = usePlaylistStore();
   const playerRef = useRef<YouTubePlayer | null>(null);
@@ -256,3 +257,6 @@ export function Player({ compact = false }: { compact?: boolean }) {
     </TerminalWindow>
   );
 }
+
+export const Player = React.memo(PlayerComponent);
+
