@@ -9,7 +9,7 @@ import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
 
 function PlayerComponent({ compact = false }: { compact?: boolean }) {
-  const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying } = usePlayerStore();
+  const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying, setIsPlaying } = usePlayerStore();
   const { nextTrack } = usePlaylistStore();
   const playerRef = useRef<YouTubePlayer | null>(null);
   const currentTrackIdRef = useRef<string | null>(null);
@@ -135,8 +135,8 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
     switch (state) {
       case PLAYER_STATES.ENDED:
         if (repeatMode === 'one') {
-          event.target.seekTo(0);
-          event.target.playVideo();
+          event.target?.seekTo?.(0);
+          event.target?.playVideo?.();
         } else {
           nextTrack();
         }
@@ -159,17 +159,15 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         break;
       case PLAYER_STATES.PAUSED:
         setIsLoading(false);
-        // If the app believes it should be playing, try to resume immediately when visible.
-        if (isPlaying) {
-          if (!document.hidden) {
-            try {
-              event.target.playVideo();
-            } catch (e) {
-              console.warn('[Player] resume after pause failed', e);
-            }
+        // When visible, treat PAUSED as a user action and update app state so it doesn't auto-resume.
+        if (!document.hidden) {
+          try {
+            setIsPlaying(false);
+          } catch (e) {
+            // no-op if setting state fails for any reason
           }
-          // If hidden, the background resume interval will keep trying periodically.
         }
+        // If the page is hidden and playback is expected, the bgResumeInterval will handle resuming.
         break;
       case PLAYER_STATES.CUED:
         setIsLoading(false);

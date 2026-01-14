@@ -21,10 +21,18 @@ export function PlaylistHistory() {
 
   useEffect(() => {
     const ro = new ResizeObserver(() => {
-      setListHeight(containerRef.current?.clientHeight || 200);
+      const newHeight = containerRef.current?.clientHeight || 200;
+      setListHeight((prev) => {
+        // avoid tiny fluctuations causing infinite resize loops
+        if (Math.abs((prev || 0) - newHeight) > 2) {
+          return Math.max(newHeight - 16, 100); // subtract padding (p-2 = 8px top + 8px bottom)
+        }
+        return prev as number;
+      });
     });
     if (containerRef.current) ro.observe(containerRef.current);
-    setListHeight(containerRef.current?.clientHeight || 200);
+    const initial = containerRef.current?.clientHeight || 200;
+    setListHeight((prev) => (Math.abs((prev || 0) - initial) > 2 ? Math.max(initial - 16, 100) : (prev as number)));
     return () => ro.disconnect();
   }, []);
 
