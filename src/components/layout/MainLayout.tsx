@@ -1,11 +1,11 @@
 'use client';
 
-import { Player, PlayerControls } from '@/components/player';
+import { Player } from '@/components/player';
 import { GenreSelector, Playlist, PlaylistHistory } from '@/components/playlist';
 import { TerminalHeader } from '@/components/terminal';
 import { HelpModal, useHelpModal } from '@/components/ui';
 import { KeyboardShortcutsProvider } from '@/hooks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { List, Radio as RadioIcon, History, HelpCircle, Github } from 'lucide-react';
 
 type MobileTab = 'player' | 'genres' | 'queue' | 'history';
@@ -20,6 +20,22 @@ export function MainLayout() {
     { id: 'queue', icon: <List className="w-4 h-4" />, label: 'Queue' },
     { id: 'history', icon: <History className="w-4 h-4" />, label: 'History' },
   ];
+
+  const [activeLayout, setActiveLayout] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+
+  // Detect current breakpoint so we only render a single Player instance
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      if (w >= 1024) setActiveLayout('desktop');
+      else if (w >= 768) setActiveLayout('tablet');
+      else setActiveLayout('mobile');
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   return (
     <KeyboardShortcutsProvider>
@@ -41,9 +57,8 @@ export function MainLayout() {
           {/* Main content */}
           <div className="flex flex-col min-h-0 p-3 gap-3">
             <div className="flex-1 min-h-0">
-              <Player />
+              {activeLayout === 'desktop' && <Player />}
             </div>
-            <PlayerControls />
           </div>
 
           {/* Right sidebar */}
@@ -57,9 +72,8 @@ export function MainLayout() {
           {/* Left - Player */}
           <div className="flex flex-col min-h-0 p-3 gap-3">
             <div className="flex-1 min-h-0">
-              <Player />
+              {activeLayout === 'tablet' && <Player />}
             </div>
-            <PlayerControls />
           </div>
 
           {/* Right - Genres and Playlist */}
@@ -79,9 +93,8 @@ export function MainLayout() {
             {mobileTab === 'player' && (
               <div className="flex flex-col gap-3 h-full">
                 <div className="flex-1 min-h-0">
-                  <Player />
+                  {activeLayout === 'mobile' && <Player />}
                 </div>
-                <PlayerControls />
               </div>
             )}
             {mobileTab === 'genres' && <GenreSelector />}

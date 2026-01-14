@@ -4,8 +4,8 @@ export const YOUTUBE_PLAYER_OPTIONS = {
   height: '100%',
   width: '100%',
   playerVars: {
-    autoplay: 0,
-    controls: 0,
+    autoplay: 1,
+    controls: 1,
     disablekb: 1,
     enablejsapi: 1,
     fs: 0,
@@ -14,8 +14,7 @@ export const YOUTUBE_PLAYER_OPTIONS = {
     playsinline: 1,
     rel: 0,
     showinfo: 0,
-    origin: typeof window !== 'undefined' ? window.location.origin : '',
-    wmode: 'opaque',
+    origin: typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '',
   },
 };
 

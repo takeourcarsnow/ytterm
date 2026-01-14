@@ -4,17 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
 
 export function useKeyboardShortcuts() {
-  const {
-    togglePlay,
-    toggleMute,
-    cycleRepeatMode,
-    setVolume,
-    volume,
-    seekTo,
-    progress,
-    duration,
-  } = usePlayerStore();
-
+  const { cycleRepeatMode } = usePlayerStore();
   const { nextTrack, previousTrack, toggleShuffle } = usePlaylistStore();
 
   const handleKeyDown = useCallback(
@@ -28,62 +18,37 @@ export function useKeyboardShortcuts() {
       }
 
       switch (event.key.toLowerCase()) {
-        case ' ':
-          event.preventDefault();
-          togglePlay();
-          break;
         case 'arrowright':
           if (event.shiftKey) {
+            event.preventDefault();
             nextTrack();
-          } else {
-            seekTo(Math.min(duration, progress + 10));
           }
           break;
         case 'arrowleft':
           if (event.shiftKey) {
+            event.preventDefault();
             previousTrack();
-          } else {
-            seekTo(Math.max(0, progress - 10));
           }
           break;
-        case 'arrowup':
-          event.preventDefault();
-          setVolume(Math.min(100, volume + 10));
-          break;
-        case 'arrowdown':
-          event.preventDefault();
-          setVolume(Math.max(0, volume - 10));
-          break;
-        case 'm':
-          toggleMute();
-          break;
         case 'r':
+          event.preventDefault();
           cycleRepeatMode();
           break;
         case 's':
+          event.preventDefault();
           toggleShuffle();
           break;
         case 'n':
+          event.preventDefault();
           nextTrack();
           break;
         case 'p':
+          event.preventDefault();
           previousTrack();
           break;
       }
     },
-    [
-      togglePlay,
-      toggleMute,
-      cycleRepeatMode,
-      setVolume,
-      volume,
-      seekTo,
-      progress,
-      duration,
-      nextTrack,
-      previousTrack,
-      toggleShuffle,
-    ]
+    [cycleRepeatMode, nextTrack, previousTrack, toggleShuffle]
   );
 
   useEffect(() => {

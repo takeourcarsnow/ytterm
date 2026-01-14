@@ -22,8 +22,6 @@ export function PlaylistItem({
   onPlay,
   onRemove,
 }: PlaylistItemProps) {
-  const { isPlaying } = usePlayerStore();
-  const isCurrentlyPlaying = isActive && isPlaying;
   const [showComments, setShowComments] = useState(false);
 
   const handleRedditClick = () => {
@@ -45,11 +43,7 @@ export function PlaylistItem({
       {/* Index / Play button */}
       <button onClick={onPlay} className="w-6 h-6 flex items-center justify-center shrink-0">
         {isActive ? (
-          isCurrentlyPlaying ? (
-            <span className="text-terminal-accent">▶</span>
-          ) : (
-            <Pause className="w-3 h-3 text-terminal-accent" />
-          )
+          <span className="text-terminal-accent">♪</span>
         ) : (
           <>
             <span className="group-hover:hidden text-terminal-muted">

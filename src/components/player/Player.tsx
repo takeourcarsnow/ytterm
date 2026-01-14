@@ -1,75 +1,46 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-import YouTube, { YouTubeEvent } from 'react-youtube';
+import { useCallback, useRef, useEffect } from 'react';
+import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
-import { playerManager } from '@/lib/playerManager';
 
 export function Player() {
-  const {
-    currentTrack,
-    volume,
-    isMuted,
-    isLoading,
-    isPlaying,
-    setIsPlaying,
-    setDuration,
-    setProgress,
-    setIsLoading,
-    repeatMode,
-  } = usePlayerStore();
-
+  const { currentTrack, isLoading, setIsLoading, repeatMode } = usePlayerStore();
   const { nextTrack } = usePlaylistStore();
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
-  const currentVideoId = useRef<string | null>(null);
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const currentTrackIdRef = useRef<string | null>(null);
 
-  const startProgressTracking = useCallback(() => {
-    if (progressInterval.current) clearInterval(progressInterval.current);
-    progressInterval.current = setInterval(() => {
-      const t = playerManager.getCurrentTime();
-      if (!isNaN(t)) setProgress(t);
-    }, 500);
-  }, [setProgress]);
-
-  const stopProgressTracking = useCallback(() => {
-    if (progressInterval.current) {
-      clearInterval(progressInterval.current);
-      progressInterval.current = null;
-    }
-  }, []);
+  // Track component lifecycle
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.log('[Player] Error destroying player:', e);
+        }
+        playerRef.current = null;
+      }
+      currentTrackIdRef.current = null;
+    };
+  }, [currentTrack?.id]);
 
   const onReady = useCallback((event: YouTubeEvent) => {
-    // Stop any previous player before setting new one
-    playerManager.setPlayer(event.target);
-    event.target.setVolume(volume);
-    if (isMuted) event.target.mute();
-    currentVideoId.current = currentTrack?.youtubeId || null;
-    
-    // If we should be playing, start playback
-    if (isPlaying) {
-      playerManager.play();
+    // Only set up the player if it matches the current track
+    if (currentTrack?.id === currentTrackIdRef.current) {
+      return;
     }
-  }, [volume, isMuted, currentTrack?.youtubeId, isPlaying]);
+    playerRef.current = event.target;
+    currentTrackIdRef.current = currentTrack?.id || null;
+  }, [currentTrack?.id]);
 
   const onStateChange = useCallback((event: YouTubeEvent) => {
     const state = event.data;
     switch (state) {
-      case PLAYER_STATES.PLAYING:
-        setIsPlaying(true);
-        setIsLoading(false);
-        setDuration(event.target.getDuration());
-        startProgressTracking();
-        break;
-      case PLAYER_STATES.PAUSED:
-        setIsPlaying(false);
-        stopProgressTracking();
-        break;
       case PLAYER_STATES.ENDED:
-        stopProgressTracking();
-        setIsPlaying(false);
         if (repeatMode === 'one') {
           event.target.seekTo(0);
           event.target.playVideo();
@@ -80,34 +51,21 @@ export function Player() {
       case PLAYER_STATES.BUFFERING:
         setIsLoading(true);
         break;
+      case PLAYER_STATES.PLAYING:
+      case PLAYER_STATES.PAUSED:
       case PLAYER_STATES.CUED:
         setIsLoading(false);
         break;
     }
-  }, [setIsPlaying, setIsLoading, setDuration, startProgressTracking, stopProgressTracking, repeatMode, nextTrack]);
+  }, [repeatMode, nextTrack, setIsLoading]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopProgressTracking();
-      playerManager.destroy();
-    };
-  }, [stopProgressTracking]);
-
-  // Stop previous track when changing tracks
-  useEffect(() => {
-    if (currentTrack?.youtubeId && currentVideoId.current && currentTrack.youtubeId !== currentVideoId.current) {
-      playerManager.stop();
-    }
-  }, [currentTrack?.youtubeId]);
-
-  const onError = useCallback(() => {
+  const onError = useCallback((event: YouTubeEvent) => {
+    console.error('[Player] onError', event, 'for track:', currentTrack?.id);
     setIsLoading(false);
-    setIsPlaying(false);
     setTimeout(() => {
       nextTrack();
     }, 1000);
-  }, [setIsLoading, setIsPlaying, nextTrack]);
+  }, [setIsLoading, nextTrack, currentTrack?.id]);
 
   return (
     <TerminalWindow 
@@ -119,14 +77,14 @@ export function Player() {
           <>
             <div>
               <YouTube
-                key={currentTrack.youtubeId}
+                key={currentTrack.id}
                 videoId={currentTrack.youtubeId}
                 opts={YOUTUBE_PLAYER_OPTIONS}
                 onReady={onReady}
                 onStateChange={onStateChange}
                 onError={onError}
                 className="w-full h-full"
-                iframeClassName="w-full h-full pointer-events-none"
+                iframeClassName="w-full h-full"
               />
             </div>
             {isLoading && (
