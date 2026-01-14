@@ -28,6 +28,7 @@ export interface Genre {
   description: string;
   icon: string;
   color: string;
+  category?: string;
 }
 
 export interface RedditPost {

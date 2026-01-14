@@ -57,27 +57,58 @@ export function GenreSelector() {
     }
   };
 
-  // Prefetch the first genre once on mount for faster perceived load
+  // Previously auto-generated the default genre on mount. Disabled to prevent automatic
+  // loading when the page opens — users should select a genre to generate a playlist manually.
   useEffect(() => {
-    if (!activePlaylist && !isLoading) {
-      const defaultGenre = GENRES[0];
-      if (defaultGenre) {
-        setSelectedGenre(defaultGenre);
-        generatePlaylist(defaultGenre);
-        setIsPlaying(true);
-      }
-    }
-  }, [activePlaylist, isLoading, generatePlaylist, setIsPlaying]);
+    // no-op: intentionally left blank to avoid auto-loading a genre on mount
+  }, []);
 
-  // Always show all genres instantly
+  // Always show all genres instantly and group them by category
   const visibleGenres = GENRES;
+
+  const grouped = visibleGenres.reduce((acc, g) => {
+    const key = g.category || 'Other';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(g);
+    return acc;
+  }, {} as Record<string, Genre[]>);
+
+  const categoryOrder = [
+    'Electronic',
+    'Dance & Club',
+    'Hip Hop',
+    'Rock',
+    'Metal',
+    'Jazz',
+    'Classical',
+    'World',
+    'Pop',
+    'Discovery',
+    'Soundtracks',
+    'Live',
+    'Production',
+    'Era',
+    'Niche',
+    'Folk',
+    'Blues',
+    'Reggae & Dub',
+    'Other',
+  ];
+
+  const orderedCategories = Object.keys(grouped).sort((a, b) => {
+    const ai = categoryOrder.indexOf(a);
+    const bi = categoryOrder.indexOf(b);
+    const aIndex = ai === -1 ? 999 : ai;
+    const bIndex = bi === -1 ? 999 : bi;
+    return aIndex - bIndex || a.localeCompare(b);
+  });
 
   const handleGenreSelect = (genre: Genre) => {
     setSelectedGenre(genre);
     // Request generating playlist and start playback when available
     generatePlaylist(genre);
     setIsPlaying(true);
-  }; 
+  };
 
   return (
     <TerminalWindow title="[GENRES]" className="h-full">
@@ -121,16 +152,7 @@ export function GenreSelector() {
               </div>
             </div>
           )}
-          {selectedGenre && (
-            <Button
-              onClick={() => generatePlaylist(selectedGenre, sortOption, timeFilter)}
-              disabled={isLoading}
-              variant="primary"
-              className="w-full"
-            >
-              Regenerate
-            </Button>
-          )}
+
         </div>
 
         {/* Loading */}
@@ -147,32 +169,38 @@ export function GenreSelector() {
           </div>
         )}
 
-        {/* Genre grid */}
-        <div className="grid grid-cols-2 gap-1.5">
-          {visibleGenres.map((genre) => (
-            <button
-              key={genre.id}
-              onClick={() => handleGenreSelect(genre)}
-              disabled={isLoading}
-              className={`p-2 border text-left disabled:opacity-50 ${
-                selectedGenre?.id === genre.id
-                  ? 'border-terminal-accent bg-terminal-accent/10'
-                  : 'border-terminal-border hover:border-terminal-accent'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-sm">{genre.icon}</span>
-                <span className="font-mono text-xs font-bold" style={{ color: genre.color }}>
-                  {genre.name}
-                </span>
+        {/* Genre groups */}
+        <div className="space-y-2">
+          {orderedCategories.map((cat) => (
+            <div key={cat}>
+              <div className="font-mono text-[10px] text-terminal-muted uppercase mb-1">{cat}</div>
+              <div className="grid grid-cols-2 gap-1.5 mb-1">
+                {grouped[cat].map((genre) => (
+                  <button
+                    key={genre.id}
+                    onClick={() => handleGenreSelect(genre)}
+                    disabled={isLoading}
+                    className={`p-2 border text-left disabled:opacity-50 ${
+                      selectedGenre?.id === genre.id
+                        ? 'border-terminal-accent bg-terminal-accent/10'
+                        : 'border-terminal-border hover:border-terminal-accent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="text-sm">{genre.icon}</span>
+                      <span className="font-mono text-xs font-bold" style={{ color: genre.color }}>
+                        {genre.name}
+                      </span>
+                    </div>
+                    <div className="font-mono text-[10px] text-terminal-muted truncate">
+                      r/{genre.subreddit}
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div className="font-mono text-[10px] text-terminal-muted truncate">
-                r/{genre.subreddit}
-              </div>
-            </button>
+            </div>
           ))}
         </div>
-
 
       </div>
     </TerminalWindow>
