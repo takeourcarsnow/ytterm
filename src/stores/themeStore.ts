@@ -19,7 +19,7 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
     }),
     {
-      name: 'ytterm-theme',
+      name: 'reddituunes-theme',
     }
   )
 );

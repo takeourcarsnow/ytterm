@@ -1,6 +1,6 @@
 'use client';
 
-import { Player, PlayerControls, Visualizer } from '@/components/player';
+import { Player, PlayerControls } from '@/components/player';
 import { GenreSelector, Playlist, PlaylistHistory } from '@/components/playlist';
 import { TerminalHeader } from '@/components/terminal';
 import { HelpModal, useHelpModal } from '@/components/ui';
@@ -43,7 +43,6 @@ export function MainLayout() {
             <div className="flex-1 min-h-0">
               <Player />
             </div>
-            <Visualizer barCount={32} />
             <PlayerControls />
           </div>
 
@@ -60,7 +59,6 @@ export function MainLayout() {
             <div className="flex-1 min-h-0">
               <Player />
             </div>
-            <Visualizer barCount={24} />
             <PlayerControls />
           </div>
 
@@ -83,7 +81,6 @@ export function MainLayout() {
                 <div className="flex-1 min-h-0">
                   <Player />
                 </div>
-                <Visualizer barCount={16} />
                 <PlayerControls />
               </div>
             )}
@@ -116,8 +113,8 @@ export function MainLayout() {
         {/* Footer */}
         <footer className="flex-shrink-0 border-t border-terminal-border bg-terminal-header py-1.5 px-3">
           <div className="flex items-center justify-between font-mono text-xs text-terminal-muted">
-            <span className="hidden sm:inline">YTTERM v1.0</span>
-            <span className="sm:hidden">YTTERM</span>
+            <span className="hidden sm:inline">ReddiTunes v1.0</span>
+            <span className="sm:hidden">ReddiTunes</span>
             <button
               onClick={helpModal.open}
               className="flex items-center gap-1 hover:text-terminal-accent"

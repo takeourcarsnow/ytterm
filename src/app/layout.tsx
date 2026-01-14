@@ -9,12 +9,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YTTERM - Terminal YouTube Player",
+  title: "ReddiTunes - Terminal YouTube Player",
   description: "A terminal-inspired YouTube player with Reddit playlist generation",
   keywords: ["youtube", "player", "terminal", "reddit", "music", "vaporwave", "synthwave"],
-  authors: [{ name: "YTTERM" }],
+  authors: [{ name: "ReddiTunes" }],
   openGraph: {
-    title: "YTTERM - Terminal YouTube Player",
+    title: "ReddiTunes - Terminal YouTube Player",
     description: "A terminal-inspired YouTube player with Reddit playlist generation",
     type: "website",
   },

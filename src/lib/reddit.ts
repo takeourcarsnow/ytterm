@@ -22,7 +22,7 @@ export async function fetchSubredditPosts(
   
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'YTTerm/1.0',
+      'User-Agent': 'ReddiTunes/1.0',
     },
     next: { revalidate: 300 }, // Cache for 5 minutes
   });

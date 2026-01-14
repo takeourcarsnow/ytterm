@@ -97,7 +97,7 @@ export const usePlayerStore = create<PlayerState>()(
       },
     }),
     {
-      name: 'ytterm-player',
+      name: 'reddituunes-player',
       partialize: (state) => ({
         volume: state.volume,
         repeatMode: state.repeatMode,

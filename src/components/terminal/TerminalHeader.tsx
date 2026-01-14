@@ -24,7 +24,7 @@ export function TerminalHeader() {
         <div className="flex items-center gap-1.5">
           <Radio className="w-4 h-4 text-terminal-accent" />
           <h1 className="font-mono text-sm text-terminal-accent font-bold">
-            YTTERM
+            ReddiTunes
           </h1>
         </div>
 

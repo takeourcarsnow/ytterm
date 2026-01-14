@@ -66,9 +66,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </div>
 
             <div className="mt-6 pt-4 border-t border-terminal-border">
-              <h3 className="font-mono text-sm text-terminal-accent mb-2">About YTTERM</h3>
+              <h3 className="font-mono text-sm text-terminal-accent mb-2">About ReddiTunes</h3>
               <p className="font-mono text-xs text-terminal-muted leading-relaxed">
-                YTTERM is a terminal-inspired YouTube player that generates playlists
+                ReddiTunes is a terminal-inspired YouTube player that generates playlists
                 from music subreddits. Select a genre to fetch YouTube links from
                 the corresponding subreddit and start listening.
               </p>

@@ -1,4 +1,4 @@
-# YTTERM - Terminal YouTube Player
+# ReddiTunes - Terminal YouTube Player
 
 A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists dynamically from music subreddits.
 

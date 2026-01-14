@@ -247,7 +247,7 @@ export const usePlaylistStore = create<PlaylistState>()(
       },
     }),
     {
-      name: 'ytterm-playlists',
+      name: 'reddituunes-playlists',
       partialize: (state) => ({
         playlists: state.playlists,
         sortOption: state.sortOption,
