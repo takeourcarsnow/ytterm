@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Track } from '@/types';
 import { usePlayerStore } from '@/stores';
 import { truncateText } from '@/lib/utils';
-import { Play, Pause, X } from 'lucide-react';
+import { Play, Pause, X, ExternalLink, MessageCircle } from 'lucide-react';
+import { CommentsModal } from '@/components/ui';
 
 interface PlaylistItemProps {
   track: Track;
@@ -22,6 +24,17 @@ export function PlaylistItem({
 }: PlaylistItemProps) {
   const { isPlaying } = usePlayerStore();
   const isCurrentlyPlaying = isActive && isPlaying;
+  const [showComments, setShowComments] = useState(false);
+
+  const handleRedditClick = () => {
+    if (track.redditUrl) {
+      window.open(track.redditUrl, '_blank');
+    }
+  };
+
+  const handleCommentsClick = () => {
+    setShowComments(true);
+  };
 
   return (
     <div
@@ -57,16 +70,52 @@ export function PlaylistItem({
         )}
       </div>
 
-      {/* Remove */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="p-0.5 opacity-0 group-hover:opacity-100 hover:text-red-400"
-      >
-        <X className="w-3 h-3" />
-      </button>
+      {/* Action buttons */}
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+        {track.redditUrl && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRedditClick();
+              }}
+              className="p-0.5 hover:text-terminal-accent"
+              title="Open Reddit thread"
+            >
+              <ExternalLink className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCommentsClick();
+              }}
+              className="p-0.5 hover:text-terminal-accent"
+              title="View comments"
+            >
+              <MessageCircle className="w-3 h-3" />
+            </button>
+          </>
+        )}
+
+        {/* Remove */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="p-0.5 hover:text-red-400"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Comments Modal */}
+      <CommentsModal
+        permalink={track.redditUrl || ''}
+        title={track.title}
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </div>
   );
 }

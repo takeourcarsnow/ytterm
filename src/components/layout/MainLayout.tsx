@@ -6,7 +6,7 @@ import { TerminalHeader } from '@/components/terminal';
 import { HelpModal, useHelpModal } from '@/components/ui';
 import { KeyboardShortcutsProvider } from '@/hooks';
 import { useState } from 'react';
-import { List, Radio as RadioIcon, History, HelpCircle } from 'lucide-react';
+import { List, Radio as RadioIcon, History, HelpCircle, Github } from 'lucide-react';
 
 type MobileTab = 'player' | 'genres' | 'queue' | 'history';
 
@@ -115,13 +115,22 @@ export function MainLayout() {
           <div className="flex items-center justify-between font-mono text-xs text-terminal-muted">
             <span className="hidden sm:inline">ReddiTunes v1.0</span>
             <span className="sm:hidden">ReddiTunes</span>
-            <button
-              onClick={helpModal.open}
-              className="flex items-center gap-1 hover:text-terminal-accent"
-            >
-              <HelpCircle className="w-3 h-3" />
-              <kbd className="px-1 border border-terminal-border text-[10px]">?</kbd>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.open('https://nefas.tv', '_blank')}
+                className="flex items-center gap-1 hover:text-terminal-accent"
+                title="Visit nefas.tv"
+              >
+                <Github className="w-3 h-3" />
+              </button>
+              <button
+                onClick={helpModal.open}
+                className="flex items-center gap-1 hover:text-terminal-accent"
+                title="Help"
+              >
+                <HelpCircle className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </footer>
 

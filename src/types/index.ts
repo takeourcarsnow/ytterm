@@ -41,6 +41,16 @@ export interface RedditPost {
   num_comments: number;
 }
 
+export interface RedditComment {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+  created_utc: number;
+  replies?: RedditComment[];
+  depth: number;
+}
+
 export interface RedditResponse {
   data: {
     children: Array<{
