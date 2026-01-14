@@ -23,7 +23,7 @@ export function MainLayout() {
 
   return (
     <KeyboardShortcutsProvider>
-      <div className="h-screen flex flex-col overflow-hidden bg-terminal-bg">
+      <div className="h-screen flex flex-col overflow-hidden bg-terminal-bg pt-[env(safe-area-inset-top)]">
         <TerminalHeader />
 
         {/* Desktop Layout (lg+) */}
@@ -90,7 +90,7 @@ export function MainLayout() {
           </div>
 
           {/* Mobile Tab Bar */}
-          <nav className="flex-shrink-0 border-t border-terminal-border bg-terminal-header">
+          <nav className="flex-shrink-0 border-t border-terminal-border bg-terminal-header pb-[env(safe-area-inset-bottom)]">
             <div className="flex">
               {tabs.map((tab) => (
                 <button
@@ -111,7 +111,7 @@ export function MainLayout() {
         </main>
 
         {/* Footer */}
-        <footer className="flex-shrink-0 border-t border-terminal-border bg-terminal-header py-1.5 px-3">
+        <footer className="flex-shrink-0 border-t border-terminal-border bg-terminal-header py-1.5 px-3 pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-center justify-between font-mono text-xs text-terminal-muted">
             <span className="hidden sm:inline">ReddiTunes v1.0</span>
             <span className="sm:hidden">ReddiTunes</span>
